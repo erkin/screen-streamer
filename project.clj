@@ -1,0 +1,12 @@
+(defproject screen-streamer "0.1.0"
+  :description "Screen broadcasting utility"
+  :url "https://github.com/erkin/screen-streamer"
+  :license {:name "Mozilla Public License 2.0"}
+  :dependencies [[org.clojure/clojure "1.10.0"]
+                 [org.clojure/tools.cli "0.4.2"]
+                 [org.clojure/tools.logging "0.4.1"]
+                 [seesaw "1.5.0"]]
+  :main ^:skip-aot screen-streamer.core
+  :pedantic? :warn
+  :target-path "target/%s"
+  :profiles {:uberjar {:aot :all}})
