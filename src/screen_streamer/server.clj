@@ -1,8 +1,7 @@
 (ns screen-streamer.server
   "Streaming server"
   (:use screen-streamer.network
-        [screen-streamer.const tiles])
-  (:require [clojure.tools.logging :as log])
+        screen-streamer.const)
   (:gen-class)
   (:import (java.awt.image BufferedImage)
            (java.net DatagramPacket DatagramSocket)))
@@ -10,7 +9,6 @@
 ;; We'll use port 0 to let the system allocate a free port for us.
 (def port 0)
 (def max-packet-length 65536)
-(def broadcast-address (get-broadcast-address))
 
 (defonce snips (atom (vector (byte-array 0) 4)))
 (defonce server (atom nil))
@@ -32,11 +30,13 @@
   "Take pairs of snips and their indices from a certain frame, turn them
   into a single `ByteArray`."
   [imgs frame]
-  (byte-array (map (fn [img] (byte-array [(byte frame) (byte (first img)) (second img)])) imgs)))
+  (defn prepare-packet [img]
+    (byte-array [(byte frame) (byte (first img)) (second img)]))
+  (byte-array (map prepare-packet imgs)))
 
 (defn send-packet
-  "Send a packet to the `InetAddress` returned by `get-broadcast-address`
-  at port `port`. `msg` must be a `ByteArray`."
+  "Send a packet to the `broadcast-address` at port `port`.
+  `msg` must be a `ByteArray`."
   [msg]
   (let [len (.length msg)]
     (if (< len max-packet-length)
@@ -51,11 +51,11 @@
   (let [pairs (check-duplicates imgs @snips)]
     ;; Replace the previous snips with the new one.
     (swap! snips imgs)
-    (run! send-packet (prepare-packets pairs @frame-counter))
+    (run! send-packet (prepare-packets pairs @counter))
     ;; Update the frame counter and keep it bytesized.
-    (if (= @frame-counter 127)
-      (reset! frame-counter 0)
-      (swap! frame-counter inc))))
+    (if (= @counter 127)
+      (reset! counter 0)
+      (swap! counter inc))))
 
 
 

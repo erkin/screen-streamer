@@ -1,4 +1,5 @@
 target
 test
+.eastwood
 .lein-repl-history
 .nrepl-port

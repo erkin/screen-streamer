@@ -1,9 +1,7 @@
 (ns screen-streamer.core
   "GUI portion of the program"
-  (:use screen-streamer.const
-        [screen-streamer.network start-server stop-server burst-frame]
+  (:use [screen-streamer const network]
         seesaw.core)
-  (:require [clojure.tools.logging :as log])
   (:gen-class :main true))
 
 (def f (frame ; :on-close :exit
@@ -73,20 +71,16 @@
   (invoke-later (show! (pack! f))))
 
 (defn launch-client []
-  (log/info "Launching client.")
   (config! f :menubar (menubar :items [client-file-menu record-menu help-menu]))
   (config! f :title (str program-name " client"))
   (launch-frame f))
 
 (defn launch-server []
-  (log/info "Launching server.")
   (config! f :menubar (menubar :items [server-file-menu help-menu]))
   (config! f :title (str program-name " server"))
   (launch-frame f))
 
 (defn -main [& args]
-  (log/debug "Localhost:" (.getHostAddress (get-localhost-address)))
-  (log/debug "Broadcast:" (.getHostAddress (get-broadcast-address)))
   ;; (native!)
   (case (input "Pick the mode of operation"
                :title program-name

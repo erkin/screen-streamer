@@ -1,6 +1,5 @@
 (ns screen-streamer.network
   "Networking functions"
-  (:require [clojure.tools.logging :as log])
   (:gen-class)
   (:import (java.net InetAddress Inet4Address
                      InterfaceAddress NetworkInterface)))
@@ -16,8 +15,8 @@
        (map bean)
        (filter #(= (.getClass (:address %)) Inet4Address))))
 
-(defn get-localhost-address []
+(def get-localhost-address
   (InetAddress/getLocalHost))
 
-(defn get-broadcast-address []
+(def get-broadcast-address
   (get (first (get-addresses)) :broadcast))
