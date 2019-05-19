@@ -1,14 +1,9 @@
 (ns screen-streamer.client
   "Streaming client"
-  (:use screen-streamer.network
-        screen-streamer.const)
+  (:use [screen-streamer [const :only [tiles port max-packet-length]]])
   (:gen-class)
-  (:import (java.awt BufferedImage)
+  (:import (java.awt.image BufferedImage)
            (java.net DatagramPacket DatagramSocket)))
-
-;; We'll use port 0 to let the system allocate a free port for us.
-(def port 0)
-(def max-packet-length 65536)
 
 (defonce snips (atom (vec (repeat tiles (byte-array 0)))))
 (defonce client (atom nil))
@@ -42,15 +37,18 @@
   (DatagramSocket. port))
 
 (defn start-client []
-  (reset! running true)
-  (reset! client (create-client))
-  (while @running
-    (let [packet (DatagramPacket. (byte-array max-packet-length)
-                                  max-packet-length)]
-      (.receive @client packet)
-      (future (dismantle-packet packet)))))
+  (when (not @running)
+   (reset! running true)
+   (reset! client (create-client))
+   (while @running
+     (let [packet (DatagramPacket. (byte-array max-packet-length)
+                                   max-packet-length)]
+       (.receive @client packet)
+       (dismantle-packet packet)
+       (print (map count snips))))))
 
 (defn stop-client []
-  (reset! running false)
-  (.close @client)
-  (reset! client nil))
+  (when @running
+   (reset! running false)
+   (.close @client)
+   (reset! client nil)))

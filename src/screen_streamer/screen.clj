@@ -1,11 +1,27 @@
 (ns screen-streamer.screen
   "Screen capture"
-  (:use screen-streamer.const)
+  (:use [screen-streamer.const :only [tiles image-format]])
   (:gen-class)
   (:import (java.io ByteArrayOutputStream)
            (java.awt AWTException Robot Rectangle Toolkit)
            (java.awt.image BufferedImage)
            (javax.imageio ImageIO)))
+
+
+
+(defn image->bytes
+  "Convert `BufferedImage` to `ByteArray`.
+  `fmt` is a string that describes the image format,
+  such as `png` or `jpg`."
+  [image fmt]
+  (let [baos (ByteArrayOutputStream.)]
+    (ImageIO/write image fmt baos)
+    (.toByteArray baos)))
+
+(defn bytes->image
+  "Convert `ByteArray`"
+  []
+  (comment "stub"))
 
 
 
@@ -31,14 +47,8 @@
           j grid]
       (.getSubimage image (* i w) (* j h) w h))))
 
-(defn assemble-image [images]
-  (comment "stub"))
-
-(defn image->bytes
-  "Convert `BufferedImage` to `ByteArray`.
-  `fmt` is a string that describes the image format,
-  such as `png` or `jpg`."
-  [image fmt]
-  (let [baos (ByteArrayOutputStream.)]
-    (ImageIO/write image fmt baos)
-    (.toByteArray baos)))
+(defn prepare-snips
+  "Capture a screenshot and return a vector of `ByteArray`s containing
+  its snips."
+  []
+  (mapv #(image->bytes % image-format) (split-image (screen-grab))))

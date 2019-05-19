@@ -1,17 +1,15 @@
 (ns screen-streamer.server
   "Streaming server"
-  (:use screen-streamer.network
-        screen-streamer.const)
+  (:use [screen-streamer.const :only [tiles port max-packet-length]]
+        [screen-streamer.screen :only [prepare-snips]]
+        [screen-streamer.network :only [broadcast-address]])
   (:gen-class)
   (:import (java.awt.image BufferedImage)
            (java.net DatagramPacket DatagramSocket)))
 
-;; We'll use port 0 to let the system allocate a free port for us.
-(def port 0)
-(def max-packet-length 65536)
-
 (defonce snips (atom (vec (repeat tiles (byte-array 0)))))
 (defonce server (atom nil))
+(defonce running (atom false))
 (defonce counter (atom 0))
 
 
@@ -30,9 +28,9 @@
   "Take snips and their indices from a certain frame, turn them into
   a single `ByteArray`."
   [imgs frame]
-  (defn prepare-packet [img]
-    (byte-array [(byte frame) (byte (img :index)) (img :image)]))
-  (byte-array (map prepare-packet imgs)))
+  (letfn [(prepare-packet [img]
+            (byte-array [(byte frame) (byte (img :index)) (img :image)]))]
+    (byte-array (map prepare-packet imgs))))
 
 (defn send-packet
   "Send a packet to the `broadcast-address` at port `port`.
@@ -58,9 +56,6 @@
         (reset! counter 0)
         (swap! counter inc)))))
 
-;; (defn zap [address]
-;;   (send-packet (bytes address)))
-
 
 
 (defn create-server []
@@ -69,8 +64,15 @@
     socket))
 
 (defn start-server []
-  (reset! server (create-server)))
+  (when (not @running)
+    (reset! running true)
+    (reset! server (create-server))
+    (while @running
+      ;; Send the chopped up screenshot.
+      (burst-frame (prepare-snips)))))
 
 (defn stop-server []
-  (.close @server)
-  (reset! server nil))
+  (when @running
+    (reset! running false)
+    (.close @server)
+    (reset! server nil)))

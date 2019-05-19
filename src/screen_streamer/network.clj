@@ -15,8 +15,8 @@
        (map bean)
        (filter #(= (.getClass (:address %)) Inet4Address))))
 
-(def get-localhost-address
+(def localhost-address
   (InetAddress/getLocalHost))
 
-(def get-broadcast-address
+(def broadcast-address
   (get (first (get-addresses)) :broadcast))

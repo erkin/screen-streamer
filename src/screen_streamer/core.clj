@@ -1,6 +1,9 @@
 (ns screen-streamer.core
   "GUI portion of the program"
-  (:use [screen-streamer const network]
+  (:use [screen-streamer.const :only [program-name about-message]]
+        [screen-streamer.server :only [start-server stop-server]]
+        [screen-streamer.client :only [start-client stop-client]]
+        [clojure.core.async :only [thread]]
         seesaw.core)
   (:gen-class :main true))
 
@@ -12,11 +15,11 @@
    :text "File"
    :items [(action
             :name "Connect"
-            :handler (fn [e] (alert "connecting"))
+            :handler (fn [e] (thread (start-client)))
             :tip "Establish connection.")
            (action
             :name "Disconnect"
-            :handler (fn [e] (alert "disconnecting"))
+            :handler (fn [e] (stop-client))
             :tip "Disestablish connection.")
            (action
             :name "Exit"
@@ -27,12 +30,12 @@
   (menu
    :text "File"
    :items [(action
-            :name "List"
-            :handler (fn [e] (alert "listing"))
+            :name "Start broadcast"
+            :handler (fn [e] (thread (start-server)))
             :tip "List active connections.")
            (action
-            :name "Close"
-            :handler (fn [e] (alert "closing"))
+            :name "End broadcast"
+            :handler (fn [e] (stop-server))
             :tip "Close session to client.")
            (action
             :name "Exit"
@@ -63,7 +66,7 @@
             :handler (fn [e] (alert f about-message
                                    :title "About"
                                    :type :info))
-            :tip "About this program.")]))
+            :tip about-message)]))
 
 
 
@@ -81,7 +84,7 @@
   (launch-frame f))
 
 (defn -main [& args]
-  ;; (native!)
+  (native!)
   (case (input "Pick the mode of operation"
                :title program-name
                :choices ["client" "server"])
