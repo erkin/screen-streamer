@@ -1,5 +1,5 @@
 (ns screen-streamer.const
-  "Constants")
+  "Constant values")
 
 (def program-name "screen-streamer")
 

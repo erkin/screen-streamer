@@ -10,28 +10,28 @@
 (def port 0)
 (def max-packet-length 65536)
 
-(defonce snips (atom (vector (byte-array 0) 4)))
+(defonce snips (atom (vec (repeat tiles (byte-array 0)))))
 (defonce server (atom nil))
 (defonce counter (atom 0))
 
 
 
 (defn check-duplicates
-  "Compare two lists of snips for duplicates, return uniques and their
-  indices as pairs."
+  "Compare two lists of `ByteArray`s for duplicates, return uniques and
+  their indices as maps."
   [imgs dups]
-  (for [i (range 0 tiles)
+  (for [i (range tiles)
         :let [img (nth imgs i)
               dup (nth dups i)]
         :when (not= img dup)]
-    [i img]))
+    {:index i :image img}))
 
 (defn prepare-packets
-  "Take pairs of snips and their indices from a certain frame, turn them
-  into a single `ByteArray`."
+  "Take snips and their indices from a certain frame, turn them into
+  a single `ByteArray`."
   [imgs frame]
   (defn prepare-packet [img]
-    (byte-array [(byte frame) (byte (first img)) (second img)]))
+    (byte-array [(byte frame) (byte (img :index)) (img :image)]))
   (byte-array (map prepare-packet imgs)))
 
 (defn send-packet
@@ -47,15 +47,19 @@
 (defn burst-frame
   "Take snips as `ByteArray`s, compare them against previous ones, label
   and send the unique ones as `DatagramPacket`s."
-  [imgs]
-  (let [pairs (check-duplicates imgs @snips)]
-    ;; Replace the previous snips with the new one.
-    (swap! snips imgs)
-    (run! send-packet (prepare-packets pairs @counter))
-    ;; Update the frame counter and keep it bytesized.
-    (if (= @counter 127)
-      (reset! counter 0)
-      (swap! counter inc))))
+  [new-snips]
+  (let [imgs (check-duplicates new-snips @snips)]
+    (when (not (empty? imgs))
+      ;; Replace the previous snips with the new ones.
+      (swap! snips new-snips)
+      (run! send-packet (prepare-packets imgs @counter))
+      ;; Update the frame counter and keep it bytesized.
+      (if (= @counter 127)
+        (reset! counter 0)
+        (swap! counter inc)))))
+
+;; (defn zap [address]
+;;   (send-packet (bytes address)))
 
 
 
