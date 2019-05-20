@@ -17,5 +17,5 @@
 (def max-packet-length 65536)
 (def port 5001)
 ;; Must be a square number.
-(def tiles 4)
+(def tiles 9)
 (def image-format "png")

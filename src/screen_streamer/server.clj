@@ -73,7 +73,7 @@
     (reset! running true)
     (reset! server (create-server))
     (while @running
-      (Thread/sleep 70)
+      (Thread/sleep 50)
       ;; Send the chopped up screenshot.
       (burst-frame (grab-snips)))))
 

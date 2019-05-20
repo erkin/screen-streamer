@@ -8,13 +8,9 @@
   (:gen-class :main true))
 
 
-(defonce client-running (atom false))
-
-
-
 (def p (grid-panel :border "screen-streamer"
-                   :columns 2
-                   :rows 2))
+                   :columns (Math/sqrt tiles)
+                   :rows (Math/sqrt tiles)))
 
 (def f (frame :on-close :exit
               :content p))
@@ -23,16 +19,16 @@
 
 (defn set-screen [imgs] (config! p :items imgs))
 
-(defn clear-client-frame []
-  (set-screen []))
-
 (defn prepare-client-frame []
-  (clear-client-frame)
-  (while @client-running
-    (Thread/sleep 70)
-    (let [scrs @screens]
-      (when (not (some nil? scrs))
-        (set-screen (mapv #(label :icon (icon %)) scrs))))))
+  (set-screen [])
+  (add-watch screens :client-watcher
+             (fn [key atom old-screens new-screens]
+               (when (not (some nil? new-screens))
+                 (set-screen (mapv #(label :icon (icon %)) new-screens))))))
+
+(defn clear-client-frame []
+  (set-screen [])
+  (remove-watch screens :client-watcher))
 
 
 
@@ -43,15 +39,13 @@
             :name "Start listening"
             :handler (fn [e]
                        (thread (start-client))
-                       (reset! client-running true)
-                       (thread (prepare-client-frame))
+                       (prepare-client-frame)
                        (set-status "Listening."))
             :tip "Establish connection.")
            (action
             :name "Stop listening"
             :handler (fn [e]
                        (stop-client)
-                       (reset! client-running false)
                        (clear-client-frame)
                        (set-status "Not listening."))
             :tip "Disestablish connection.")
@@ -84,18 +78,6 @@
                        (.dispose (to-frame e)))
             :tip "Exit program.")]))
 
-(def record-menu
-  (menu
-   :text "Record"
-   :items [(action
-            :name "Grab screen"
-            :handler (fn [e] (alert "grabbing"))
-            :tip "Saves screenshot to a file.")
-           (action
-            :name "Record screen"
-            :handler (fn [e] (alert "recording"))
-            :tip "Starts recording the screen.")]))
-
 (def help-menu
   (menu
    :text "Help"
@@ -116,7 +98,7 @@
   (invoke-later (show! (pack! f))))
 
 (defn launch-client []
-  (config! f :menubar (menubar :items [client-file-menu record-menu help-menu]))
+  (config! f :menubar (menubar :items [client-file-menu help-menu]))
   (config! f :title (str program-name " client"))
   (config! f :size [640 :by 480])
   (set-status "Not listening.")
@@ -125,8 +107,8 @@
 (defn launch-server []
   (config! f :menubar (menubar :items [server-file-menu help-menu]))
   (config! f :title (str program-name " server"))
-  (config! f :size [320 :set 240])
-  (by-status "Not broadcasting.")
+  (config! f :size [320 :by 240])
+  (set-status "Not broadcasting.")
   (launch-frame f))
 
 (defn -main [& args]

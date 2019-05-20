@@ -41,12 +41,13 @@
   cannot be evenly divided by the number of tiles."
   [image]
   ;; Dimensions of screen and tiles
-  (let [w (quot (.getWidth  image) tiles)
-        h (quot (.getHeight image) tiles)
-        grid (range 0 (Math/sqrt tiles))]
+  (let [row (Math/sqrt tiles)
+        w (quot (.getWidth  image) row)
+        h (quot (.getHeight image) row)
+        grid (range row)]
     ;; Iterate over the grid
-    (for [i grid
-          j grid]
+    (for [i (range row)
+          j (range row)]
       (.getSubimage image (* j w) (* i h) w h))))
 
 (defn grab-snips
@@ -62,30 +63,30 @@
   (mapv bytes->image snips))
 
 (comment
+  ;; worst mistake of my life
   (defn stitch-snips
-   "Assembles a vector of `BufferedImage`s together as tiles.
+    "Assembles a vector of `BufferedImage`s together as tiles.
   Returns a new `BufferedImage`."
-   [snips]
-   (let [row (Math/sqrt tiles)
-         w (.getWidth  (first snips))
-         h (.getHeight (first snips))
-         width (* w row)
-         height (* h row)
-         grid (range 0 row)
-         image (BufferedImage. width height
-                               BufferedImage/TYPE_INT_ARGB)
-         canvas (.createGraphics image)
-         colour (.getColor canvas)]
-     (.setPaint canvas Color/BLACK)
-     (.fillRect canvas 0 0 width height)
-     (.setColor canvas colour)
-     (for [i grid
-           j grid]
-       (canvas (.drawImage
-                (nth snips (+ j (* i row)))
-                nil (* i w) (* j h))))
-     (.dispose canvas)
-     image)))
+    [snips]
+    (let [row (Math/sqrt tiles)
+          w (.getWidth  (first snips))
+          h (.getHeight (first snips))
+          width (* w row)
+          height (* h row)
+          image (BufferedImage. width height
+                                BufferedImage/TYPE_INT_ARGB)
+          canvas (.createGraphics image)
+          colour (.getColor canvas)]
+      (.setPaint canvas Color/BLACK)
+      (.fillRect canvas 0 0 width height)
+      (.setColor canvas colour)
+      (for [i (range row)
+            j (range row)]
+        (canvas (.drawImage
+                 (nth snips (+ j (* i row)))
+                 nil (* i w) (* j h))))
+      (.dispose canvas)
+      image)))
 
 (comment
   (defn make-image
