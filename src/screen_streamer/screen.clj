@@ -2,13 +2,13 @@
   "Screen capture"
   (:use [screen-streamer.const :only [tiles image-format]])
   (:gen-class)
-  (:import (java.io ByteArrayOutputStream)
-           (java.awt AWTException Robot Rectangle Toolkit)
+  (:import (java.io ByteArrayInputStream ByteArrayOutputStream)
+           (java.awt Color Graphics2D Robot Rectangle Toolkit)
            (java.awt.image BufferedImage)
            (javax.imageio ImageIO)))
 
-
 
+;;; Internal functions
 (defn image->bytes
   "Convert `BufferedImage` to `ByteArray`.
   `fmt` is a string that describes the image format,
@@ -19,11 +19,13 @@
     (.toByteArray baos)))
 
 (defn bytes->image
-  "Convert `ByteArray`"
-  []
-  (comment "stub"))
+  "Convert `ByteArray` to `BufferedImage`."
+  [data]
+  (let [bais (ByteArrayInputStream. data)]
+    (ImageIO/read bais)))
 
 
+;;; Server functions
 
 (defn screen-grab
   "Take a screenshot and return a `BufferedImage`."
@@ -45,10 +47,47 @@
     ;; Iterate over the grid
     (for [i grid
           j grid]
-      (.getSubimage image (* i w) (* j h) w h))))
+      (.getSubimage image (* j w) (* i h) w h))))
 
-(defn prepare-snips
+(defn grab-snips
   "Capture a screenshot and return a vector of `ByteArray`s containing
   its snips."
   []
   (mapv #(image->bytes % image-format) (split-image (screen-grab))))
+
+
+;;; Client functions
+
+(defn make-images [snips]
+  (mapv bytes->image snips))
+
+(comment
+  (defn stitch-snips
+   "Assembles a vector of `BufferedImage`s together as tiles.
+  Returns a new `BufferedImage`."
+   [snips]
+   (let [row (Math/sqrt tiles)
+         w (.getWidth  (first snips))
+         h (.getHeight (first snips))
+         width (* w row)
+         height (* h row)
+         grid (range 0 row)
+         image (BufferedImage. width height
+                               BufferedImage/TYPE_INT_ARGB)
+         canvas (.createGraphics image)
+         colour (.getColor canvas)]
+     (.setPaint canvas Color/BLACK)
+     (.fillRect canvas 0 0 width height)
+     (.setColor canvas colour)
+     (for [i grid
+           j grid]
+       (canvas (.drawImage
+                (nth snips (+ j (* i row)))
+                nil (* i w) (* j h))))
+     (.dispose canvas)
+     image)))
+
+(comment
+  (defn make-image
+   [snips]
+   (stitch-snips (mapv bytes->image snips))))
