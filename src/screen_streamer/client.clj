@@ -2,14 +2,14 @@
   "Streaming client"
   (:use [screen-streamer.const :only [tiles port max-packet-length]]
         [screen-streamer.network :only [broadcast-address]]
-        [screen-streamer.screen :only [make-images]])
+        [screen-streamer.screen :only [make-image]])
   (:gen-class)
   (:import (java.awt.image BufferedImage)
            (java.net DatagramPacket DatagramSocket
                      InetSocketAddress SocketException)))
 
-(defonce screens (atom (vec (repeat tiles nil))))
 (defonce snips (atom (vec (repeat tiles (byte-array 0)))))
+(defonce image (atom nil))
 
 (defonce client (atom nil))
 (defonce running (atom false))
@@ -60,7 +60,7 @@
             ;; Don't attempt to regenerate an image with empty snips.
             (when (not (some empty? @snips))
               ;; Reassemble the image with the new snips.
-              (reset! screens (make-images @snips)))))))))
+              (reset! image (make-image @snips)))))))))
 
 (defn stop-client []
   (when @running

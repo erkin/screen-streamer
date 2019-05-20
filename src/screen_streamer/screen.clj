@@ -3,12 +3,18 @@
   (:use [screen-streamer.const :only [tiles image-format]])
   (:gen-class)
   (:import (java.io ByteArrayInputStream ByteArrayOutputStream)
-           (java.awt Color Graphics2D Robot Rectangle Toolkit)
+           (java.awt Graphics2D Robot Rectangle Toolkit)
            (java.awt.image BufferedImage)
            (javax.imageio ImageIO)))
 
 
+(def screen-size
+  (let [size (.getScreenSize (Toolkit/getDefaultToolkit))]
+    (list (.getWidth size) (.getHeight size))))
+
+
 ;;; Internal functions
+
 (defn image->bytes
   "Convert `BufferedImage` to `ByteArray`.
   `fmt` is a string that describes the image format,
@@ -62,33 +68,24 @@
 (defn make-images [snips]
   (mapv bytes->image snips))
 
-(comment
-  ;; worst mistake of my life
-  (defn stitch-snips
-    "Assembles a vector of `BufferedImage`s together as tiles.
-  Returns a new `BufferedImage`."
-    [snips]
-    (let [row (Math/sqrt tiles)
-          w (.getWidth  (first snips))
-          h (.getHeight (first snips))
-          width (* w row)
-          height (* h row)
-          image (BufferedImage. width height
-                                BufferedImage/TYPE_INT_ARGB)
-          canvas (.createGraphics image)
-          colour (.getColor canvas)]
-      (.setPaint canvas Color/BLACK)
-      (.fillRect canvas 0 0 width height)
-      (.setColor canvas colour)
-      (for [i (range row)
+(defn stitch-snips
+  "Assembles a vector of `BufferedImage`s together as tiles.
+    Returns a new `BufferedImage`."
+  [snips]
+  (let [row (Math/sqrt tiles)
+        w (.getWidth  (first snips))
+        h (.getHeight (first snips))
+        image (BufferedImage. (* w row) (* h row)
+                              BufferedImage/TYPE_INT_ARGB)
+        canvas (.createGraphics image)]
+    (doseq [i (range row)
             j (range row)]
-        (canvas (.drawImage
-                 (nth snips (+ j (* i row)))
-                 nil (* i w) (* j h))))
-      (.dispose canvas)
-      image)))
+      (.drawImage canvas
+                  (nth snips (+ j (* i row)))
+                  nil (* j w) (* i h)))
+    (.dispose canvas)
+    image))
 
-(comment
-  (defn make-image
-   [snips]
-   (stitch-snips (mapv bytes->image snips))))
+(defn make-image
+  [snips]
+  (stitch-snips (mapv bytes->image snips)))

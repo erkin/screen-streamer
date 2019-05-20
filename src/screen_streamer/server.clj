@@ -39,10 +39,9 @@
   `msg` must be a `ByteArray`."
   [msg]
   (let [len (alength msg)]
-    (if (< len max-packet-length)
-      (.send @server (DatagramPacket. msg len broadcast-address port))
-      (throw (ex-info "Data too big to put into a UDP packet!"
-                      {:length len})))))
+    ;; Silently discard tiles that wouldn't fit in a UDP packet.
+    (when (< len max-packet-length)
+      (.send @server (DatagramPacket. msg len broadcast-address port)))))
 
 (defn burst-frame
   "Take snips as `ByteArray`s, compare them against previous ones, label

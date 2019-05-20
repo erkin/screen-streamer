@@ -2,33 +2,36 @@
   "GUI portion of the program"
   (:use screen-streamer.const
         [screen-streamer.server :only [start-server stop-server]]
-        [screen-streamer.client :only [start-client stop-client screens]]
+        [screen-streamer.client :only [start-client stop-client image]]
+        [screen-streamer.screen :only [screen-size]]
         [clojure.core.async :only [thread]]
         seesaw.core)
   (:gen-class :main true))
 
-
-(def p (grid-panel :border "screen-streamer"
-                   :columns (Math/sqrt tiles)
-                   :rows (Math/sqrt tiles)))
+(def p
+  (grid-panel :border "screen-streamer"
+              :columns 1))
 
 (def f (frame :on-close :exit
               :content p))
 
-(defn set-status [str] (config! p :border str))
+(defn set-status [str]
+  (config! p :border str))
 
-(defn set-screen [imgs] (config! p :items imgs))
+(defn set-screen [img]
+  (config! p :items [(label :icon img)]))
 
 (defn prepare-client-frame []
   (set-screen [])
-  (add-watch screens :client-watcher
-             (fn [key atom old-screens new-screens]
-               (when (not (some nil? new-screens))
-                 (set-screen (mapv #(label :icon (icon %)) new-screens))))))
+  (config! f :size [(first screen-size) :by (second screen-size)])
+  (add-watch image :client-watcher
+             (fn [key atom old-image new-image]
+               (when (not (nil? new-image))
+                 (set-screen (icon new-image))))))
 
 (defn clear-client-frame []
   (set-screen [])
-  (remove-watch screens :client-watcher))
+  (remove-watch image :client-watcher))
 
 
 
