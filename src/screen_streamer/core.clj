@@ -9,9 +9,11 @@
         [seesaw.chooser :only [choose-file]])
   (:gen-class :main true))
 
-(def p
-  (grid-panel :border "screen-streamer"
-              :columns 1))
+(def l (label))
+
+(def p (grid-panel :border "screen-streamer"
+                   :columns 1
+                   :items [l]))
 
 (def f (frame :on-close :exit
               :content p))
@@ -20,9 +22,12 @@
   (config! p :border str))
 
 (defn set-screen [img]
-  (config! p :items [(label :icon img)]))
+  (config! l :icon img))
 
-(defn prepare-client-frame []
+(defn prepare-client-frame
+  "Resize the screen and set a watcher on the image atom that blits the
+  image on the screen with each update."
+  []
   (set-screen [])
   (config! f :size [(first screen-size) :by (second screen-size)])
   (add-watch image :client-watcher
@@ -34,8 +39,11 @@
   (set-screen [])
   (remove-watch image :client-watcher))
 
-(defn save-screenshot []
+(defn save-screenshot
+  "Ask the user for a path to save the screenshot."
+  []
   (let [img @image]
+    ;; Ignore event if image isn't ready.
     (when (not (nil? img))
       (choose-file
        f :type :save

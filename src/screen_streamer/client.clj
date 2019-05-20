@@ -16,6 +16,7 @@
 (defonce counter (atom 0))
 
 
+;; Internal functions
 
 (defn update-snips
   "Take a map containing a new snip and update the vector of old ones."
@@ -41,6 +42,7 @@
 (defn create-client []
   (let [socket (DatagramSocket. nil)
         address (InetSocketAddress. broadcast-address port)]
+    ;; For testing on the same computer.
     (.setReuseAddress socket true)
     (.bind socket address)
     socket))

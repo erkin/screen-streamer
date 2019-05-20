@@ -1,6 +1,6 @@
 (ns screen-streamer.server
   "Streaming server"
-  (:use [screen-streamer.const :only [tiles port max-packet-length]]
+  (:use [screen-streamer.const :only [tiles port max-packet-length freq]]
         [screen-streamer.screen :only [grab-snips]]
         [screen-streamer.network :only [broadcast-address]])
   (:gen-class)
@@ -14,6 +14,7 @@
 (defonce counter (atom 0))
 
 
+;; Internal functions
 
 (defn check-duplicates
   "Compare two lists of `ByteArray`s for duplicates, return uniques and
@@ -63,6 +64,7 @@
   (let [socket (DatagramSocket. nil)
         address (InetSocketAddress. broadcast-address port)]
     (.setBroadcast socket true)
+    ;; For testing on the same computer.
     (.setReuseAddress socket true)
     (.bind socket address)
     socket))
@@ -72,7 +74,7 @@
     (reset! running true)
     (reset! server (create-server))
     (while @running
-      (Thread/sleep 50)
+      (Thread/sleep freq)
       ;; Send the chopped up screenshot.
       (burst-frame (grab-snips)))))
 

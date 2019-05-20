@@ -5,7 +5,7 @@
 (def program-name "screen-streamer")
 
 (def about-message
-  (str program-name " v0.2" \newline
+  (str program-name " v0.3" \newline
        \newline
        "Copyright (C) 2019 Erkin Batu Altunbaş" \newline
        \newline
@@ -18,4 +18,6 @@
 (def port 5001)
 ;; Must be a square number.
 (def tiles 9)
+;; Milliseconds per screenshot.
+(def freq 40)
 (def image-format "png")

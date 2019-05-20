@@ -18,16 +18,12 @@
 
 ;;; Internal functions
 
-(defn image->bytes
-  "Convert `BufferedImage` to `ByteArray`."
-  [image]
+(defn image->bytes [image]
   (let [baos (ByteArrayOutputStream.)]
     (ImageIO/write image image-format baos)
     (.toByteArray baos)))
 
-(defn bytes->image
-  "Convert `ByteArray` to `BufferedImage`."
-  [data]
+(defn bytes->image [data]
   (let [bais (ByteArrayInputStream. data)]
     (ImageIO/read bais)))
 
@@ -66,12 +62,9 @@
 
 ;;; Client functions
 
-(defn make-images [snips]
-  (mapv bytes->image snips))
-
 (defn stitch-snips
   "Assembles a vector of `BufferedImage`s together as tiles.
-    Returns a new `BufferedImage`."
+   Returns a new `BufferedImage`."
   [snips]
   (let [row (Math/sqrt tiles)
         w (.getWidth  (first snips))
@@ -88,5 +81,6 @@
     image))
 
 (defn make-image
+  "Turns snips of `ByteArray`s into a single unified `BufferedImage`."
   [snips]
   (stitch-snips (mapv bytes->image snips)))
