@@ -52,7 +52,10 @@
     (while @running
       (let [packet (DatagramPacket. (byte-array max-packet-length)
                                     max-packet-length)]
-        (.receive @client packet)
+        ;; Ignore the exception thrown when the socket is closed from the
+        ;; main thread. Temporary fix, I swear.
+        (try (.receive @client packet)
+             (catch SocketException ex []))
         (let [data (dismantle-packet packet)]
           ;; Check if the frame is new.
           (when data 
@@ -65,8 +68,5 @@
 (defn stop-client []
   (when @running
     (reset! running false)
-    ;; Ignore the exception thrown when the socket is closed from the
-    ;; main thread. Temporary fix.
-    (try (.close @client)
-         (catch SocketException ex))
-   (reset! client nil)))
+    (.close @client)
+    (reset! client nil)))

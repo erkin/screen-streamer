@@ -3,9 +3,10 @@
   (:use screen-streamer.const
         [screen-streamer.server :only [start-server stop-server]]
         [screen-streamer.client :only [start-client stop-client image]]
-        [screen-streamer.screen :only [screen-size]]
+        [screen-streamer.screen :only [screen-size save-image]]
         [clojure.core.async :only [thread]]
-        seesaw.core)
+        seesaw.core
+        [seesaw.chooser :only [choose-file]])
   (:gen-class :main true))
 
 (def p
@@ -33,6 +34,14 @@
   (set-screen [])
   (remove-watch image :client-watcher))
 
+(defn save-screenshot []
+  (let [img @image]
+    (when (not (nil? img))
+      (choose-file
+       f :type :save
+       :success-fn (fn [fc path]
+                     (save-image img path))))))
+
 
 
 (def client-file-menu
@@ -52,6 +61,10 @@
                        (clear-client-frame)
                        (set-status "Not listening."))
             :tip "Disestablish connection.")
+           (action
+            :name "Save screenshot"
+            :handler (fn [e]
+                       (save-screenshot)))
            (action
             :name "Exit"
             :handler (fn [e]
@@ -85,15 +98,11 @@
   (menu
    :text "Help"
    :items [(action
-            :name "Help"
-            :handler (fn [e] (alert "helping"))
-            :tip "Display help message.")
-           (action
             :name "About"
             :handler (fn [e] (alert f about-message
                                    :title "About"
                                    :type :info))
-            :tip about-message)]))
+            :tip "About this program.")]))
 
 
 

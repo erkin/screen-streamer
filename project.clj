@@ -1,4 +1,4 @@
-(defproject screen-streamer "0.2.0"
+(defproject screen-streamer "0.3.0"
   :description "Screen broadcasting utility"
   :url "https://github.com/erkin/screen-streamer"
   :license {:name "Mozilla Public License 2.0"}

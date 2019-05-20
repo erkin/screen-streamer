@@ -12,16 +12,17 @@
   (let [size (.getScreenSize (Toolkit/getDefaultToolkit))]
     (list (.getWidth size) (.getHeight size))))
 
+(defn save-image [img path]
+  (ImageIO/write img image-format path))
+
 
 ;;; Internal functions
 
 (defn image->bytes
-  "Convert `BufferedImage` to `ByteArray`.
-  `fmt` is a string that describes the image format,
-  such as `png` or `jpg`."
-  [image fmt]
+  "Convert `BufferedImage` to `ByteArray`."
+  [image]
   (let [baos (ByteArrayOutputStream.)]
-    (ImageIO/write image fmt baos)
+    (ImageIO/write image image-format baos)
     (.toByteArray baos)))
 
 (defn bytes->image
@@ -60,7 +61,7 @@
   "Capture a screenshot and return a vector of `ByteArray`s containing
   its snips."
   []
-  (mapv #(image->bytes % image-format) (split-image (screen-grab))))
+  (mapv #(image->bytes %) (split-image (screen-grab))))
 
 
 ;;; Client functions
