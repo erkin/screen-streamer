@@ -48,7 +48,7 @@
     socket))
 
 (defn start-client []
-  (when (not @running)
+  (when-not @running
     (reset! running true)
     (reset! client (create-client))
     (while @running
@@ -56,14 +56,14 @@
                                     max-packet-length)]
         ;; Ignore the exception thrown when the socket is closed from the
         ;; main thread. Temporary fix, I swear.
-        (try (.receive @client packet)
+        (try (.receive ^DatagramSocket @client packet)
              (catch SocketException ex []))
         (let [data (dismantle-packet packet)]
           ;; Check if the frame is new.
-          (when data 
+          (when data
             (update-snips data)
             ;; Don't attempt to regenerate an image with empty snips.
-            (when (not (some empty? @snips))
+            (when-not (some empty? @snips)
               ;; Reassemble the image with the new snips.
               (reset! image (make-image @snips)))))))))
 

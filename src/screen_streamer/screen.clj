@@ -42,7 +42,7 @@
   and return a list of `BufferedImage`s.
   Leftover columns/rows will be lost if image width/height
   cannot be evenly divided by the number of tiles."
-  [image]
+  [^BufferedImage image]
   ;; Dimensions of screen and tiles
   (let [row (Math/sqrt tiles)
         w (quot (.getWidth  image) row)
@@ -57,7 +57,7 @@
   "Capture a screenshot and return a vector of `ByteArray`s containing
   its snips."
   []
-  (mapv #(image->bytes %) (split-image (screen-grab))))
+  (mapv image->bytes (split-image (screen-grab))))
 
 
 ;;; Client functions
@@ -76,11 +76,11 @@
             j (range row)]
       (.drawImage canvas
                   (nth snips (+ j (* i row)))
-                  nil (* j w) (* i h)))
+                  (* j w) (* i h) nil))
     (.dispose canvas)
     image))
 
 (defn make-image
   "Turns snips of `ByteArray`s into a single unified `BufferedImage`."
-  [snips]
+  ^BufferedImage [snips]
   (stitch-snips (mapv bytes->image snips)))

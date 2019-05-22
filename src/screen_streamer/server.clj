@@ -17,7 +17,7 @@
 ;; Internal functions
 
 (defn check-duplicates
-  "Compare two lists of `ByteArray`s for duplicates, return uniques and
+  "Compare two vectors of `ByteArray`s for duplicates, return uniques and
   their indices as maps."
   [imgs dups]
   (for [i (range tiles)
@@ -49,7 +49,7 @@
   and send the unique ones as `DatagramPacket`s."
   [new-snips]
   (let [imgs (check-duplicates new-snips @snips)]
-    (when (not (empty? imgs))
+    (when (seq imgs)
       ;; Replace the previous snips with the new ones.
       (reset! snips new-snips)
       (run! send-packet (prepare-packets imgs @counter))
@@ -70,7 +70,7 @@
     socket))
 
 (defn start-server []
-  (when (not @running)
+  (when-not @running
     (reset! running true)
     (reset! server (create-server))
     (while @running

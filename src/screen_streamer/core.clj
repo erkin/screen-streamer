@@ -9,6 +9,7 @@
         [seesaw.chooser :only [choose-file]])
   (:gen-class :main true))
 
+
 (def l (label))
 
 (def p (grid-panel :border "screen-streamer"
@@ -18,11 +19,11 @@
 (def f (frame :on-close :exit
               :content p))
 
-(defn set-status [str]
-  (config! p :border str))
+(defn set-status [status]
+  (config! p :border status))
 
-(defn set-screen [img]
-  (config! l :icon img))
+(defn set-screen [image]
+  (config! l :icon image))
 
 (defn prepare-client-frame
   "Resize the screen and set a watcher on the image atom that blits the
@@ -32,7 +33,7 @@
   (config! f :size [(first screen-size) :by (second screen-size)])
   (add-watch image :client-watcher
              (fn [key atom old-image new-image]
-               (when (not (nil? new-image))
+               (when-not (nil? new-image)
                  (set-screen (icon new-image))))))
 
 (defn clear-client-frame []
@@ -44,7 +45,7 @@
   []
   (let [img @image]
     ;; Ignore event if image isn't ready.
-    (when (not (nil? img))
+    (when-not (nil? img)
       (choose-file
        f :type :save
        :success-fn (fn [fc path]
@@ -77,7 +78,7 @@
             :name "Exit"
             :handler (fn [e]
                        (stop-client)
-                       (.dispose (to-frame e)))
+                       (.dispose f))
             :tip "Exit program.")]))
 
 (def server-file-menu
@@ -99,7 +100,7 @@
             :name "Exit"
             :handler (fn [e]
                        (stop-server)
-                       (.dispose (to-frame e)))
+                       (.dispose f))
             :tip "Exit program.")]))
 
 (def help-menu
