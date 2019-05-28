@@ -5,7 +5,7 @@
         [screen-streamer.network :only [broadcast-address]])
   (:gen-class)
   (:import (java.awt.image BufferedImage)
-           (java.net DatagramPacket DatagramSocket InetSocketAddress)))
+           (java.net DatagramPacket DatagramSocket)))
 
 
 (defonce snips (atom (vec (repeat tiles (byte-array 0)))))
@@ -61,12 +61,8 @@
 
 
 (defn create-server []
-  (let [socket (DatagramSocket. nil)
-        address (InetSocketAddress. broadcast-address port)]
+  (let [socket (new DatagramSocket)]
     (.setBroadcast socket true)
-    ;; For testing on the same computer.
-    (.setReuseAddress socket true)
-    (.bind socket address)
     socket))
 
 (defn start-server []

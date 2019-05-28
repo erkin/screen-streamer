@@ -42,7 +42,7 @@
 (defn create-client []
   (let [socket (DatagramSocket. nil)
         address (InetSocketAddress. broadcast-address port)]
-    ;; For testing on the same computer.
+    ;; For testing multiple clients on the same computer.
     (.setReuseAddress socket true)
     (.bind socket address)
     socket))
