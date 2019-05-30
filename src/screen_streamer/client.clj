@@ -2,7 +2,8 @@
   "Streaming client"
   (:use [screen-streamer.const :only [tiles port max-packet-length]]
         [screen-streamer.network :only [broadcast-address]]
-        [screen-streamer.screen :only [make-image]])
+        [screen-streamer.screen :only [make-image]]
+        [clojure.core.async :only [thread]])
   (:gen-class)
   (:import (java.awt.image BufferedImage)
            (java.net DatagramPacket DatagramSocket
@@ -65,7 +66,7 @@
             ;; Don't attempt to regenerate an image with empty snips.
             (when-not (some empty? @snips)
               ;; Reassemble the image with the new snips.
-              (reset! image (make-image @snips)))))))))
+              (thread (reset! image (make-image @snips))))))))))
 
 (defn stop-client []
   (when @running
